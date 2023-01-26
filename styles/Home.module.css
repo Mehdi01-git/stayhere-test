@@ -58,7 +58,7 @@
   padding: 15px;
   display: flex;
   flex-direction: column;
-  height: 50vh;
+  height: 55vh;
   justify-content: space-evenly;
 }
 .FilterBox {
@@ -80,7 +80,7 @@
   font-family: "Poppins", sans-serif;
 }
 .Apply {
-  padding: 0px 0px;
+  padding: 10px 0px;
   font-family: "Poppins", sans-serif;
   background-color: white;
   border: 1px solid black;
@@ -88,6 +88,11 @@
   letter-spacing: 1px;
   font-weight: 500;
   cursor: pointer;
+}
+.Apply:active {
+  background-color: black;
+  color: white;
+  transition: 0.3s;
 }
 .right {
   display: flex;
@@ -149,4 +154,45 @@
   margin-top: 30px;
   display: grid;
   place-items: center;
+}
+.NoResults {
+  width: 100%;
+  height: 50vh;
+  display: grid;
+  place-items: center;
+}
+.reSpawnEdit {
+  margin-top: 10px;
+  padding: 10px 0px;
+  font-family: "Poppins", sans-serif;
+  color: black;
+  background-color: white;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border: 1px solid black;
+  cursor: pointer;
+}
+.gridLatest {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  place-items: center;
+}
+.latestGridItem img {
+  width: 100%;
+}
+.paginator {
+  margin-top: 40px;
+}
+.paginator ul {
+  display: flex;
+  width: 70%;
+  list-style: none;
+  justify-content: space-evenly;
+}
+.paginator li {
+  color: black;
+  border-radius: 50px;
+  cursor: pointer;
+  padding: 5px 13px;
+  background-color: lightgray;
 }

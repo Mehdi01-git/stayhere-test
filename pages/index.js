@@ -5,33 +5,99 @@ import { useEffect, useState } from "react";
 import EdpicksGrid from "@/components/EdpicksGrid";
 import LatestGrid from "@/components/LatestGrid";
 import { Pagination } from "@mui/material";
+import SearchGrid from "@/components/SearchGrid";
+import { PaginatedItems } from "@/components/Paginate";
 
-export default function Home({ picks }) {
-  const [age, setAge] = useState("");
+export default function Home({ picks, genres }) {
   const [data, setData] = useState();
   const [pages, setPages] = useState(1);
+  const [selectedGenres, setSelectedGenres] = useState("All");
+  const [selectedRating, setSelectedRating] = useState(9);
+  const [selectedLang, setSelectedLang] = useState("en-US");
+  const [query, setQuery] = useState("");
+  const [searchResults, setSearchResults] = useState();
+  const [applied, setApplied] = useState(false);
+  const [displayEdit, setDisplayEdit] = useState(false);
+  const [moviePage, setMoviePage] = useState([]);
+  const arr = [];
+  useEffect(() => {
+    const n = 10;
+    var requestOptions = {
+      method: "GET",
+      redirect: "follow",
+    };
+    [...Array(n)].map(async (item, i) => {
+      await fetch(
+        `https://api.themoviedb.org/3/movie/popular?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=${selectedLang}&page=${
+          i + (pages === 1 ? 1 : pages === 2 ? 6 : 11)
+        }`,
+        requestOptions
+      )
+        .then((response) => response.json())
+        .then((result) => {
+          arr.push(result.results);
+
+          setMoviePage(
+            arr[0].concat(arr[1], arr[2], arr[3], arr[4], arr[5], arr[6])
+          );
+        })
+
+        .catch((error) => console.log("error", error));
+    });
+  }, [pages, applied, selectedLang]);
 
   useEffect(() => {
-    const getLatest = async () => {
+    const Search = async () => {
       var requestOptions = {
         method: "GET",
         redirect: "follow",
       };
-      // Fetch data from external API
-      const rawPopularM = await fetch(
-        `https://api.themoviedb.org/3/movie/popular?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=en-US&page=${pages}`,
+      const serachRes = await fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=${selectedLang}&query=${query}&page=1&include_adult=false`,
         requestOptions
       );
-      const data = await rawPopularM.json();
-      setData(data);
+      const searchData = await serachRes.json();
+      setSearchResults(
+        searchData.results
+          .sort((a, b) => {
+            return b.vote_average - a.vote_average;
+          })
+          .filter(
+            (movie) =>
+              (selectedGenres === "All"
+                ? movie.genre_ids
+                : movie.genre_ids.includes(Number(selectedGenres))) &&
+              movie.vote_average <= Number(selectedRating)
+          )
+      );
     };
-    getLatest();
-  }, [pages]);
-
+    if (query.length > 1) {
+      Search();
+    }
+  }, [query, applied]);
+  function handleSearch() {
+    setApplied(!applied);
+    setDisplayEdit(true);
+  }
   const handleChange = (e, value) => {
     setPages(value);
   };
-  console.log(data);
+  function handleSelectedGenre(e) {
+    setSelectedGenres(e.target.value);
+  }
+  function handleSelectedLang(e) {
+    setSelectedLang(e.target.value);
+  }
+  function handleQuery(e) {
+    setQuery(e.target.value);
+  }
+  function handleRating(e) {
+    setSelectedRating(e.target.value);
+  }
+  function handledisplayEdit() {
+    setDisplayEdit(!displayEdit);
+  }
+  console.log(moviePage);
   return (
     <>
       <Head>
@@ -45,6 +111,7 @@ export default function Home({ picks }) {
             <p className={styles.searchTit}>Search</p>
             <Search className={styles.SearchIcon} />
             <input
+              onChange={(e) => handleQuery(e)}
               placeholder="Search..."
               className={styles.searchBar}
               type="text"
@@ -56,39 +123,125 @@ export default function Home({ picks }) {
             <p className={styles.FilterTit}>Search</p>
             <div className={styles.GernesSelect}>
               <label htmlFor="Genres">Genre(s)</label>
-              <select className={styles.genreSelector} name="genre">
-                <option value="Action">Action</option>
-                <option value="Comedy">Comedy</option>
-                <option value="Drama">Drama</option>
+              <select
+                onChange={(e) => handleSelectedGenre(e)}
+                className={styles.genreSelector}
+                name="genre"
+              >
+                <option value="All">All</option>
+                {genres.genres.map((genre, i) => {
+                  return (
+                    <option key={i} value={genre.id}>
+                      {genre.name}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div className={styles.GernesSelect}>
               <label htmlFor="Genres">Rating</label>
-              <select className={styles.genreSelector} name="genre">
-                <option value="5 Stars">5 Stars</option>
-                <option value="7 Stars">7 Stars</option>
-                <option value="9+ Stars">9+ Stars</option>
+              <select
+                onChange={(e) => handleRating(e)}
+                className={styles.genreSelector}
+                name="genre"
+              >
+                <option value="9">9+ Stars</option>
+                <option value="8">8 Stars</option>
+                <option value="6">6 Stars</option>
               </select>
             </div>
             <div className={styles.GernesSelect}>
               <label htmlFor="Genres">Language</label>
-              <select className={styles.genreSelector} name="genre">
-                <option value="English">English</option>
-                <option value="French">French</option>
-                <option value="Arabic">Arabic</option>
+              <select
+                onChange={(e) => handleSelectedLang(e)}
+                className={styles.genreSelector}
+                name="genre"
+              >
+                <option value="en-US">English</option>
+                <option value="fr-FR">French</option>
+                <option value="ar-AR">Arabic</option>
               </select>
             </div>
-            <button className={styles.Apply}>Apply Filters</button>
+            <button onClick={handleSearch} className={styles.Apply}>
+              Apply Filters
+            </button>
+            {displayEdit === true ? (
+              <button
+                className={styles.reSpawnEdit}
+                onClick={handledisplayEdit}
+              >
+                View Editor's picks
+              </button>
+            ) : (
+              ""
+            )}
           </div>
         </div>
-        <div className={styles.right}>
-          <h3 className={styles.Edit}>Editor's picks</h3>
-          <EdpicksGrid picks={picks} />
-          <h3 className={styles.latestMov}>Latest Movies</h3>
-          <LatestGrid data={data != undefined ? data : picks} />
-          <div className={styles.paginate}>
-            <Pagination size="large" onChange={handleChange} count={25} />
+        <div
+          style={{
+            display: query != "" ? "none" : "flex",
+          }}
+          className={styles.right}
+        >
+          <div
+            style={{
+              display: displayEdit === false ? "initial" : "none",
+            }}
+          >
+            <h3 className={styles.Edit}>Editor's picks</h3>
+            <EdpicksGrid picks={picks} />
           </div>
+          <h3 className={styles.latestMov}>Latest Movies</h3>
+          <PaginatedItems
+            selectedGenres={selectedGenres}
+            selectedRating={selectedRating}
+            applied={applied}
+            data={
+              moviePage.length > 1
+                ? moviePage.filter(
+                    (movie) =>
+                      movie &&
+                      (selectedGenres === "All"
+                        ? movie.genre_ids &&
+                          movie.vote_average <= Number(selectedRating)
+                        : movie.genre_ids.includes(Number(selectedGenres))) &&
+                      movie.vote_average < Number(selectedRating)
+                  )
+                : picks.results
+            }
+            itemsPerPage={8}
+          />
+
+          {/* <LatestGrid
+            selectedGenres={selectedGenres}
+            selectedRating={selectedRating}
+            applied={applied}
+            data={
+              moviePage.length >= 100 &&
+              moviePage.filter(
+                (movie) =>
+                  (selectedGenres === "All"
+                    ? movie.genre_ids &&
+                      movie.vote_average <= Number(selectedRating)
+                    : movie.genre_ids.includes(Number(selectedGenres))) &&
+                  movie.vote_average < Number(selectedRating)
+              )
+            }
+          />
+          <div className={styles.paginate}>
+            <Pagination size="large" onChange={handleChange} count={10} />
+          </div> */}
+        </div>
+        <div
+          style={{
+            display: query === "" ? "none" : "flex",
+            flexDirection: "column",
+          }}
+        >
+          <h3>Search Results for "{query}"</h3>
+          <SearchGrid
+            data={searchResults != undefined ? searchResults : picks.results}
+          />
         </div>
       </main>
     </>
@@ -105,8 +258,13 @@ export async function getServerSideProps() {
     "https://api.themoviedb.org/3/movie/top_rated?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=en-US&page=1",
     requestOptions
   );
+  const genresFetch = await fetch(
+    "https://api.themoviedb.org/3/genre/movie/list?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=en-US",
+    requestOptions
+  );
+  const genres = await genresFetch.json();
   const picks = await topRatedM.json();
 
   // Pass data to the page via props
-  return { props: { picks } };
+  return { props: { picks, genres } };
 }

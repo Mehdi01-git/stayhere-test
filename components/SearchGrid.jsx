@@ -1,16 +1,19 @@
 import { Star } from "@mui/icons-material";
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "../styles/Home.module.css";
 
-const EdpicksGrid = ({ picks }) => {
+const SearchGrid = ({ data }) => {
   return (
     <div className={styles.editGrid}>
-      {picks.results.slice(16).map((movie, i) => {
+      {data.map((movie, i) => {
         return (
           <div key={i} className={styles.gridItem}>
             <img
               alt="movieImg"
-              src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`}
+              src={
+                `https://image.tmdb.org/t/p/w500/${movie.poster_path}` ||
+                `https://image.tmdb.org/t/p/w500/${movie.backdrop_path}`
+              }
             />
             <div className={styles.Info}>
               <p>{movie.title}</p>
@@ -24,8 +27,15 @@ const EdpicksGrid = ({ picks }) => {
           </div>
         );
       })}
+      {data.length === 0 ? (
+        <div className={styles.NoResults}>
+          <h3>No Results Found</h3>
+        </div>
+      ) : (
+        ""
+      )}
     </div>
   );
 };
 
-export default EdpicksGrid;
+export default SearchGrid;
