@@ -189,9 +189,9 @@
   list-style: none;
   justify-content: space-evenly;
 }
-.paginator li {
-  color: black;
+.paginator a {
   border-radius: 50px;
+
   cursor: pointer;
   padding: 5px 13px;
   background-color: lightgray;

@@ -65,9 +65,20 @@ export default function Home({ picks, genres }) {
           .filter(
             (movie) =>
               (selectedGenres === "All"
-                ? movie.genre_ids
+                ? movie.genre_ids &&
+                  movie.vote_average <= Number(selectedRating)
                 : movie.genre_ids.includes(Number(selectedGenres))) &&
-              movie.vote_average <= Number(selectedRating)
+              Number(
+                selectedRating === 4
+                  ? 0
+                  : selectedRating === 7
+                  ? 5
+                  : selectedRating === 10
+                  ? 0
+                  : 8
+              ) <=
+                movie.vote_average <=
+                Number(selectedRating)
           )
       );
     };
@@ -145,9 +156,10 @@ export default function Home({ picks, genres }) {
                 className={styles.genreSelector}
                 name="genre"
               >
-                <option value="9">9+ Stars</option>
-                <option value="8">8 Stars</option>
-                <option value="6">6 Stars</option>
+                <option value="10">All</option>
+                <option value="9">8 Stars</option>
+                <option value="7">7 Stars</option>
+                <option value="4">4 Stars</option>
               </select>
             </div>
             <div className={styles.GernesSelect}>
@@ -198,15 +210,27 @@ export default function Home({ picks, genres }) {
             applied={applied}
             data={
               moviePage.length > 1
-                ? moviePage.filter(
-                    (movie) =>
-                      movie &&
-                      (selectedGenres === "All"
-                        ? movie.genre_ids &&
-                          movie.vote_average <= Number(selectedRating)
-                        : movie.genre_ids.includes(Number(selectedGenres))) &&
-                      movie.vote_average < Number(selectedRating)
-                  )
+                ? moviePage
+                    .filter(
+                      (movie) =>
+                        movie &&
+                        (selectedGenres === "All"
+                          ? movie.genre_ids &&
+                            movie.vote_average <= Number(selectedRating)
+                          : movie.genre_ids.includes(Number(selectedGenres))) &&
+                        Number(
+                          selectedRating === 4
+                            ? 0
+                            : selectedRating === 7
+                            ? 5
+                            : selectedRating === 10
+                            ? 0
+                            : 8
+                        ) <=
+                          movie.vote_average <=
+                          Number(selectedRating)
+                    )
+                    .sort((a, b) => b.vote_average - a.vote_average)
                 : picks.results
             }
             itemsPerPage={8}
@@ -240,7 +264,11 @@ export default function Home({ picks, genres }) {
         >
           <h3>Search Results for "{query}"</h3>
           <SearchGrid
-            data={searchResults != undefined ? searchResults : picks.results}
+            data={
+              searchResults != undefined
+                ? searchResults.sort((a, b) => b.vote_average - a.vote_average)
+                : picks.results
+            }
           />
         </div>
       </main>
@@ -255,7 +283,7 @@ export async function getServerSideProps() {
 
   // Pass data to the page via props
   const topRatedM = await fetch(
-    "https://api.themoviedb.org/3/movie/top_rated?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=en-US&page=1",
+    "https://api.themoviedb.org/3/movie/popular?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=en-US&page=1",
     requestOptions
   );
   const genresFetch = await fetch(
