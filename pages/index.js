@@ -7,6 +7,7 @@ import LatestGrid from "@/components/LatestGrid";
 import { Pagination } from "@mui/material";
 import SearchGrid from "@/components/SearchGrid";
 import { PaginatedItems } from "@/components/Paginate";
+import WatchList from "@/components/WatchList";
 
 export default function Home({ picks, genres }) {
   const [data, setData] = useState();
@@ -19,6 +20,7 @@ export default function Home({ picks, genres }) {
   const [applied, setApplied] = useState(false);
   const [displayEdit, setDisplayEdit] = useState(false);
   const [moviePage, setMoviePage] = useState([]);
+  const [watchlist, setWatchlist] = useState(false);
   const arr = [];
   useEffect(() => {
     const n = 10;
@@ -68,17 +70,7 @@ export default function Home({ picks, genres }) {
                 ? movie.genre_ids &&
                   movie.vote_average <= Number(selectedRating)
                 : movie.genre_ids.includes(Number(selectedGenres))) &&
-              Number(
-                selectedRating === 4
-                  ? 0
-                  : selectedRating === 7
-                  ? 5
-                  : selectedRating === 10
-                  ? 0
-                  : 8
-              ) <=
-                movie.vote_average <=
-                Number(selectedRating)
+              movie.vote_average <= Number(selectedRating)
           )
       );
     };
@@ -86,9 +78,11 @@ export default function Home({ picks, genres }) {
       Search();
     }
   }, [query, applied]);
+
   function handleSearch() {
     setApplied(!applied);
     setDisplayEdit(true);
+    setWatchlist(false);
   }
   const handleChange = (e, value) => {
     setPages(value);
@@ -107,8 +101,14 @@ export default function Home({ picks, genres }) {
   }
   function handledisplayEdit() {
     setDisplayEdit(!displayEdit);
+    setQuery("");
+    setWatchlist(false);
   }
-  console.log(moviePage);
+  function handleWatch() {
+    setWatchlist(!watchlist);
+    setQuery("");
+  }
+
   return (
     <>
       <Head>
@@ -177,6 +177,9 @@ export default function Home({ picks, genres }) {
             <button onClick={handleSearch} className={styles.Apply}>
               Apply Filters
             </button>
+            <button className={styles.Apply} onClick={handleWatch}>
+              {watchlist ? "Hide Watchlist" : "View Watchlist"}
+            </button>
             {displayEdit === true ? (
               <button
                 className={styles.reSpawnEdit}
@@ -197,45 +200,52 @@ export default function Home({ picks, genres }) {
         >
           <div
             style={{
-              display: displayEdit === false ? "initial" : "none",
+              display: watchlist ? "block" : "none",
+            }}
+            className={styles.Watchlist}
+          >
+            <h3>Your Watchlist</h3>
+            <WatchList />
+          </div>
+          <div
+            style={{
+              display:
+                displayEdit === false && watchlist === false
+                  ? "initial"
+                  : "none",
             }}
           >
             <h3 className={styles.Edit}>Editor's picks</h3>
             <EdpicksGrid picks={picks} />
           </div>
-          <h3 className={styles.latestMov}>Latest Movies</h3>
-          <PaginatedItems
-            selectedGenres={selectedGenres}
-            selectedRating={selectedRating}
-            applied={applied}
-            data={
-              moviePage.length > 1
-                ? moviePage
-                    .filter(
-                      (movie) =>
-                        movie &&
-                        (selectedGenres === "All"
-                          ? movie.genre_ids &&
-                            movie.vote_average <= Number(selectedRating)
-                          : movie.genre_ids.includes(Number(selectedGenres))) &&
-                        Number(
-                          selectedRating === 4
-                            ? 0
-                            : selectedRating === 7
-                            ? 5
-                            : selectedRating === 10
-                            ? 0
-                            : 8
-                        ) <=
-                          movie.vote_average <=
-                          Number(selectedRating)
-                    )
-                    .sort((a, b) => b.vote_average - a.vote_average)
-                : picks.results
-            }
-            itemsPerPage={8}
-          />
-
+          <div
+            style={{
+              display: watchlist === false ? "initial" : "none",
+            }}
+          >
+            <h3 className={styles.latestMov}>Latest Movies</h3>
+            {moviePage.length > 1 ? (
+              <PaginatedItems
+                selectedGenres={selectedGenres}
+                selectedRating={selectedRating}
+                applied={applied}
+                data={moviePage
+                  .filter(
+                    (movie) =>
+                      movie &&
+                      (selectedGenres === "All"
+                        ? movie.genre_ids &&
+                          movie.vote_average <= Number(selectedRating)
+                        : movie.genre_ids.includes(Number(selectedGenres))) &&
+                      movie.vote_average <= Number(selectedRating)
+                  )
+                  .sort((a, b) => b.vote_average - a.vote_average)}
+                itemsPerPage={8}
+              />
+            ) : (
+              <p>loading...</p>
+            )}
+          </div>
           {/* <LatestGrid
             selectedGenres={selectedGenres}
             selectedRating={selectedRating}

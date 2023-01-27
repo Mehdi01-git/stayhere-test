@@ -1,15 +1,33 @@
 import { Star } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
-import ReactDOM from "react-dom";
 import ReactPaginate from "react-paginate";
 import styles from "../styles/Home.module.css";
+import { dispatchStateContext, globalStateContext } from "../pages/_app";
+import { Tooltip } from "@mui/material";
+import Link from "next/link";
 
 // Example items, to simulate fetching from another resources.
 const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
 function Items({ currentItems, selectedRating, selectedGenres }) {
-  console.log(selectedGenres);
-  console.log(currentItems);
+  const useGlobalState = () => [
+    React.useContext(globalStateContext),
+    React.useContext(dispatchStateContext),
+  ];
+  const [state, dispatch] = useGlobalState();
+  function putItem() {
+    typeof window !== "undefined"
+      ? localStorage.setItem("FavMovies", JSON.stringify(state.favsId))
+      : false;
+  }
+  const handleRemove = (id) => {
+    const newPeople = state.favsId.filter((person) => person !== id);
+
+    dispatch({
+      favsId: newPeople,
+    });
+  };
+  useEffect(() => {}, []);
   return (
     <div className={styles.editGrid}>
       {currentItems &&
@@ -29,8 +47,32 @@ function Items({ currentItems, selectedRating, selectedGenres }) {
                 <Star />
                 <p>{movie.vote_average}</p>
               </div>
-              <button>Add to Watchlist</button>
-              <a href="#">View Info</a>
+              {typeof window !== "undefined" &&
+              window.localStorage.getItem("FavMovies") &&
+              window.localStorage.getItem("FavMovies").includes(movie.id) ? (
+                <Tooltip title="Double Click to Remove">
+                  <button
+                    onClick={() => {
+                      handleRemove(movie.id);
+                      putItem();
+                    }}
+                  >
+                    Remove from Watchlist
+                  </button>
+                </Tooltip>
+              ) : (
+                <Tooltip title="Click to Add">
+                  <button
+                    onClick={() => {
+                      dispatch(state.favsId.push(movie.id));
+                      putItem();
+                    }}
+                  >
+                    Add to Watchlist
+                  </button>
+                </Tooltip>
+              )}
+              <Link href={`/${movie.id}`}>View Info</Link>
             </div>
           </div>
         ))}
@@ -87,7 +129,7 @@ export function PaginatedItems({
           breakLabel="..."
           nextLabel="next >"
           onPageChange={handlePageClick}
-          pageRangeDisplayed={5}
+          pageRangeDisplayed={2}
           pageCount={pageCount}
           previousLabel="< previous"
           renderOnZeroPageCount={null}
