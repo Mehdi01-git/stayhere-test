@@ -22,62 +22,62 @@ export default function Home({ picks, genres }) {
   const [moviePage, setMoviePage] = useState([]);
   const [watchlist, setWatchlist] = useState(false);
   const arr = [];
-  // useEffect(() => {
-  //   const n = 10;
-  //   var requestOptions = {
-  //     method: "GET",
-  //     redirect: "follow",
-  //   };
-  //   [...Array(n)].map(async (item, i) => {
-  //     await fetch(
-  //       `https://api.themoviedb.org/3/movie/popular?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=${selectedLang}&page=${
-  //         i + (pages === 1 ? 1 : pages === 2 ? 6 : 11)
-  //       }`,
-  //       requestOptions
-  //     )
-  //       .then((response) => response.json())
-  //       .then((result) => {
-  //         arr.push(result.results);
+  useEffect(() => {
+    const n = 10;
+    var requestOptions = {
+      method: "GET",
+      redirect: "follow",
+    };
+    [...Array(n)].map(async (item, i) => {
+      await fetch(
+        `https://api.themoviedb.org/3/movie/popular?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=${selectedLang}&page=${
+          i + (pages === 1 ? 1 : pages === 2 ? 6 : 11)
+        }`,
+        requestOptions
+      )
+        .then((response) => response.json())
+        .then((result) => {
+          arr.push(result.results);
 
-  //         setMoviePage(
-  //           arr[0].concat(arr[1], arr[2], arr[3], arr[4], arr[5], arr[6])
-  //         );
-  //       })
+          setMoviePage(
+            arr[0].concat(arr[1], arr[2], arr[3], arr[4], arr[5], arr[6])
+          );
+        })
 
-  //       .catch((error) => console.log("error", error));
-  //   });
-  // }, [pages, applied, selectedLang]);
+        .catch((error) => console.log("error", error));
+    });
+  }, [pages, applied, selectedLang]);
 
-  // useEffect(() => {
-  //   const Search = async () => {
-  //     var requestOptions = {
-  //       method: "GET",
-  //       redirect: "follow",
-  //     };
-  //     const serachRes = await fetch(
-  //       `https://api.themoviedb.org/3/search/movie?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=${selectedLang}&query=${query}&page=1&include_adult=false`,
-  //       requestOptions
-  //     );
-  //     const searchData = await serachRes.json();
-  //     setSearchResults(
-  //       searchData.results
-  //         .sort((a, b) => {
-  //           return b.vote_average - a.vote_average;
-  //         })
-  //         .filter(
-  //           (movie) =>
-  //             (selectedGenres === "All"
-  //               ? movie.genre_ids &&
-  //                 movie.vote_average <= Number(selectedRating)
-  //               : movie.genre_ids.includes(Number(selectedGenres))) &&
-  //             movie.vote_average <= Number(selectedRating)
-  //         )
-  //     );
-  //   };
-  //   if (query.length > 1) {
-  //     Search();
-  //   }
-  // }, [query, applied]);
+  useEffect(() => {
+    const Search = async () => {
+      var requestOptions = {
+        method: "GET",
+        redirect: "follow",
+      };
+      const serachRes = await fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=5ccd6301393b904c4b1b8e5b00f12401&language=${selectedLang}&query=${query}&page=1&include_adult=false`,
+        requestOptions
+      );
+      const searchData = await serachRes.json();
+      setSearchResults(
+        searchData.results
+          .sort((a, b) => {
+            return b.vote_average - a.vote_average;
+          })
+          .filter(
+            (movie) =>
+              (selectedGenres === "All"
+                ? movie.genre_ids &&
+                  movie.vote_average <= Number(selectedRating)
+                : movie.genre_ids.includes(Number(selectedGenres))) &&
+              movie.vote_average <= Number(selectedRating)
+          )
+      );
+    };
+    if (query.length > 1) {
+      Search();
+    }
+  }, [query, applied]);
 
   function handleSearch() {
     setApplied(!applied);
